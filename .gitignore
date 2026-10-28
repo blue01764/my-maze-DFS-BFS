@@ -1,0 +1,9 @@
+# 开发过程中的历史备份与自检文件
+_backup/
+_checks/
+
+# 系统与编辑器文件
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
