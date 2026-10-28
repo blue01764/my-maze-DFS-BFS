@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f0e5">
+  <title>小猫找鱼 · DFS 与 BFS 互动课件</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23244c3e'/%3E%3Cpath d='M13 39c8-1 12-6 17-14 3-5 10-5 13 0 4 6 1 14-5 18-6 4-17 5-25-4Z' fill='%23d39a43'/%3E%3Ccircle cx='39' cy='27' r='2' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./maze.css?v=90">
+</head>
+<body>
+  <div class="asset-manifest" hidden aria-hidden="true">
+    <img src="./assets/cat-maze-low-poly.png" alt="">
+    <img src="./assets/cat-maze-sprite-v2.png" alt="">
+    <img src="./assets/fish-maze-low-poly.png" alt="">
+  </div>
+  <main class="lesson is-intro">
+    <header class="lesson-header">
+      <a class="wordmark" href="./index.html" aria-label="返回小猫找鱼首页">
+        <span>小猫找鱼</span>
+        <small>路径 · 选择 · 发现</small>
+      </a>
+
+      <p class="lesson-progress"><span id="chapter-number">00</span><strong id="chapter-label">课程导入</strong></p>
+
+      <nav class="chapter-map" aria-label="课程章节进度">
+        <ol>
+          <li data-chapter="0" aria-current="step"><button type="button" data-chapter-target="0" aria-label="进入课程导入"><span>0</span><b>导入</b></button></li>
+          <li data-chapter="1"><button type="button" data-chapter-target="1" aria-label="进入第一章观察"><span>1</span><b>观察</b></button></li>
+          <li data-chapter="2"><button type="button" data-chapter-target="2" aria-label="进入第二章动手探索"><span>2</span><b>动手</b></button></li>
+          <li data-chapter="3"><button type="button" data-chapter-target="3" aria-label="进入第三章探索树"><span>3</span><b>探索树</b></button></li>
+          <li data-chapter="4"><button type="button" data-chapter-target="4" aria-label="进入第四章挑战"><span>4</span><b>挑战</b></button></li>
+          <li data-chapter="5"><button type="button" data-chapter-target="5" aria-label="进入学习总结"><span>5</span><b>总结</b></button></li>
+        </ol>
+      </nav>
+
+      <div class="demo-actions">
+        <button id="start-demo" class="demo-button" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 18 12 8 18.5Z"/></svg>
+          <span>开始演示</span>
+        </button>
+        <div id="demo-playback-controls" class="demo-playback-controls" hidden>
+          <button id="demo-pause" class="playback-toggle" type="button" aria-pressed="false" aria-label="暂停播放">
+            <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v12M16 6v12"/></svg>
+            <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 9 6-9 6Z"/></svg>
+            <span>暂停</span>
+          </button>
+          <button id="playback-step" class="playback-step" type="button" aria-label="进入下一步" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h9M12 8l4 4-4 4M19 7v10"/></svg>
+            <span>下一步</span>
+          </button>
+          <div class="speed-switch" role="group" aria-label="播放速度">
+            <button type="button" data-demo-speed="0.7" aria-pressed="false">慢速</button>
+            <button type="button" data-demo-speed="1" aria-pressed="true">正常</button>
+            <button type="button" data-demo-speed="1.6" aria-pressed="false">快速</button>
+          </div>
+          <button id="playback-replay" class="playback-replay" type="button" aria-label="重新播放本章">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.8 15.5a7 7 0 1 0 .7-8.1L4 10"/></svg>
+            <span>重播</span>
+          </button>
+        </div>
+        <button id="start-practice" class="demo-button demo-button--practice" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 18 12 8 18.5Z"/></svg>
+          <span>轮到我了</span>
+        </button>
+        <button id="start-tree" class="demo-button demo-button--tree" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 18 12 8 18.5Z"/></svg>
+          <span>看看探索树</span>
+        </button>
+        <button id="replay-tree" class="demo-button demo-button--quiet" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.8 15.5a7 7 0 1 0 .7-8.1L4 10"/></svg>
+          <span>重新播放</span>
+        </button>
+        <button id="restart" class="restart" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.8 15.5a7 7 0 1 0 .7-8.1L4 10"/></svg>
+          <span>重新开始</span>
+        </button>
+      </div>
+    </header>
+
+    <section id="intro-stage" class="intro-stage" aria-labelledby="intro-title">
+      <div class="intro-visual" aria-hidden="true">
+        <span class="intro-ripple intro-ripple--one"></span>
+        <span class="intro-ripple intro-ripple--two"></span>
+        <span class="intro-ripple intro-ripple--three"></span>
+        <img src="./assets/cat-fish-low-poly.png" alt="">
+      </div>
+      <div class="intro-copy">
+        <p class="kicker">先想一想</p>
+        <h1 id="intro-title">看得见终点，<br>却看不清路怎么办？</h1>
+        <p>小猫看见了远处的小鱼，可整座迷宫还藏在迷雾里。它只能一边探索，一边把看见的道路记下来。</p>
+        <div class="learning-goals" aria-label="本课学习目标">
+          <article><span>1</span><div><strong>看懂两种找路方法</strong><p>一条路走到底，或从近到远一圈圈寻找。</p></div></article>
+          <article><span>2</span><div><strong>学会根据任务做选择</strong><p>只要找到目标，和必须找到最短路线，选择并不一样。</p></div></article>
+        </div>
+        <button id="intro-start" class="intro-primary" type="button">跟小猫一起出发</button>
+      </div>
+    </section>
+
+    <section class="stage" aria-labelledby="lesson-title" hidden>
+      <aside class="stage-copy">
+        <p id="stage-kicker" class="kicker">第一次找路</p>
+        <h1 id="lesson-title">先看看小猫<br>会怎样选择</h1>
+        <p id="stage-description">目标就在右下角，但道路仍藏在迷雾里。小猫必须按规则一步步勘探。</p>
+        <aside id="search-order-card" class="search-order-card" aria-labelledby="search-rule-title" hidden>
+          <span>小猫探路手记</span>
+          <strong id="search-rule-title">先找新路，再考虑回退</strong>
+          <div class="search-rule-steps">
+            <div class="search-rule-step">
+              <em>1</em>
+              <p><strong>先找“新路”</strong><span>能走，而且没有走过</span></p>
+            </div>
+            <div class="search-rule-step">
+              <em>2</em>
+              <div><strong>有新路：按顺序选第一条</strong><p class="rule-directions"><b>右</b><i aria-hidden="true">→</i><b>上</b><i aria-hidden="true">→</i><b>左</b><i aria-hidden="true">→</i><b>下</b></p></div>
+            </div>
+            <div class="search-rule-step">
+              <em>3</em>
+              <p><strong>没有新路：沿原路回退</strong><span>退一步后重新检查；仍无新路就继续退，直到最近一个还有新路的岔路口</span></p>
+            </div>
+          </div>
+          <small class="search-rule-note">找到小鱼就停止。</small>
+        </aside>
+        <div id="algorithm-switch" class="algorithm-switch" role="group" aria-label="选择搜索算法" hidden>
+          <button type="button" data-algorithm="dfs" aria-pressed="true"><strong>DFS</strong><span>深度优先</span></button>
+          <button type="button" data-algorithm="bfs" aria-pressed="false"><strong>BFS</strong><span>广度优先</span></button>
+        </div>
+        <aside id="thinking-prompt" class="thinking-prompt" aria-label="引导思考" hidden>
+          <button id="thinking-toggle" class="thinking-toggle" type="button" aria-label="查看思考题答案" aria-controls="thinking-answer" aria-expanded="false">?</button>
+          <strong>想一想</strong>
+          <p id="thinking-text">小猫到达岔路口时，DFS 会先探索哪一条支路？当遇到死胡同，小猫要回到哪里，才能尝试别的路？</p>
+          <div id="thinking-answer" class="thinking-answer" hidden>
+            <span>答案</span>
+            <p id="thinking-answer-text">DFS 会先选定一条支路一直深入探索；碰到死胡同，回溯到最近的岔路口，再尝试其他支路。</p>
+          </div>
+        </aside>
+        <div id="view-switch" class="view-switch" role="group" aria-label="选择观察方式" hidden>
+          <button type="button" data-view="compare" aria-pressed="true">对照观察</button>
+          <button type="button" data-view="maze" aria-pressed="false">只看迷宫</button>
+          <button type="button" data-view="tree" aria-pressed="false">只看树状图</button>
+        </div>
+      </aside>
+
+      <div class="maze-shell">
+        <div id="maze" class="maze" role="group" aria-label="六乘六花园迷宫，小猫正在寻找小鱼"></div>
+        <button id="next-step" class="next-step-button" type="button" hidden>
+          <span>下一步</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg>
+        </button>
+      </div>
+
+      <section id="tree-shell" class="tree-shell" aria-labelledby="tree-title" hidden>
+        <header class="tree-heading">
+          <div>
+            <p id="tree-record-label" class="kicker">你的探索树</p>
+            <h2 id="tree-title">探索怎样长成一棵树</h2>
+          </div>
+          <div class="tree-key" aria-label="探索树图例">
+            <span><i class="tree-key-option"></i><b id="tree-key-option">未探索</b></span>
+            <span><i></i><b id="tree-key-visited">探索过</b></span>
+            <span><i></i><b id="tree-key-solution">最终路线</b></span>
+          </div>
+        </header>
+        <div class="tree-canvas">
+          <svg id="exploration-tree" role="group" aria-label="根据你的探索过程生成的树状图"></svg>
+        </div>
+        <p id="tree-match-note" class="tree-match-note" aria-live="polite">同号表示同一位置；点迷宫或树节点查看对应。</p>
+      </section>
+
+      <aside class="legend" aria-label="迷宫图例">
+        <p class="kicker">迷宫图例</p>
+        <dl>
+          <div><dt><i class="swatch swatch--unknown"></i>未知区域</dt><dd>尚未进入视野</dd></div>
+          <div><dt><i class="swatch swatch--obstacle"></i>障碍物</dt><dd>小猫不能通行</dd></div>
+          <div><dt><i class="swatch swatch--solution"></i>小猫路线</dt><dd>最终通向小鱼的路</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section id="challenge-stage" class="challenge-stage" aria-labelledby="challenge-title" hidden>
+      <aside class="challenge-brief">
+        <p class="kicker">新的迷宫</p>
+        <h1 id="challenge-title">选择你的<br>搜索策略</h1>
+        <article class="mission-card">
+          <span id="mission-number">挑战任务</span>
+          <h2 id="mission-title">找到最少步数</h2>
+          <p id="mission-copy">每走一格都算一步。这次必须帮助小猫找到步数最少的路线。</p>
+          <small id="mission-rule">规则：每走一格算一步，不能穿过石头。</small>
+        </article>
+
+        <div id="challenge-choices" class="challenge-choices" role="group" aria-label="选择搜索策略">
+          <button type="button" data-challenge-algorithm="dfs" aria-pressed="false">
+            <strong>DFS</strong>
+          </button>
+          <button type="button" data-challenge-algorithm="bfs" aria-pressed="false">
+            <strong>BFS</strong>
+          </button>
+        </div>
+        <button id="challenge-start" class="challenge-primary" type="button" disabled>先选择一种方法</button>
+      </aside>
+
+      <div class="challenge-maze-shell">
+        <div id="challenge-maze" class="maze challenge-maze" role="img" aria-label="一张全新的六乘六迷宫"></div>
+        <p class="challenge-maze-note"><span>起点</span><i></i><span>目标</span></p>
+      </div>
+
+      <aside class="challenge-insight" aria-live="polite">
+        <div id="challenge-guide" class="challenge-guide">
+          <p class="kicker">开始前先想一想</p>
+          <h2>先看任务，再选方法</h2>
+          <p>一种方法会沿着一条路不断深入，另一种方法会从近到远逐层展开。你认为哪一种更适合寻找最少步数？</p>
+          <div class="strategy-clues" aria-label="两种搜索方法的中性提示">
+            <span><b>DFS</b>沿一条支路深入，走不通再退回</span>
+            <span><b>BFS</b>先检查近处，再逐层向外扩大</span>
+          </div>
+        </div>
+
+        <div id="challenge-results" class="challenge-results" hidden>
+          <p class="kicker">搜索结果</p>
+          <h2 id="challenge-result-title">探索结果</h2>
+          <div id="result-metrics" class="result-metrics"></div>
+          <p id="challenge-feedback" class="challenge-feedback"></p>
+          <button id="challenge-compare" class="challenge-secondary" type="button">换一种方法试试</button>
+          <button id="challenge-continue" class="challenge-primary" type="button" hidden>完成挑战</button>
+        </div>
+      </aside>
+    </section>
+
+    <section id="summary-stage" class="summary-stage" aria-labelledby="summary-title" hidden>
+      <header class="summary-heading">
+        <div>
+          <p class="kicker">小猫的搜索工具箱</p>
+          <h1 id="summary-title">遇到新任务，先想清楚要找什么</h1>
+        </div>
+        <div class="summary-intro">
+          <p>人工智能不会凭空知道答案。它会根据任务目标，选择合适的搜索方法，再从许多可能性里一步步寻找。</p>
+        </div>
+      </header>
+
+      <div class="summary-workbench">
+        <section class="route-notebook" aria-labelledby="route-notebook-title">
+          <header>
+            <span>路线手账</span>
+            <small>从小猫找鱼记住两种动作</small>
+          </header>
+          <h2 id="route-notebook-title">同一座迷宫，两种搜索节奏</h2>
+          <div class="route-sketch" aria-label="DFS深入回退，BFS逐层扩散的路线示意">
+            <div class="route-origin"><img src="./assets/cat-maze-low-poly.png" alt="小猫起点"></div>
+            <div class="route-track route-track--dfs">
+              <span class="route-label">DFS</span>
+              <i></i><i></i><i></i><i class="route-turn"></i><i></i>
+              <span class="route-dead-end">死路</span>
+              <span class="route-return-arrow" aria-label="遇到死路后回退"><b></b></span>
+              <strong>深入，再回退</strong>
+            </div>
+            <div class="route-track route-track--bfs">
+              <div class="bfs-sketch-heading"><span class="route-label">BFS</span><small>分层示意</small></div>
+              <svg class="bfs-layer-sketch" viewBox="0 0 300 112" role="img" aria-labelledby="bfs-layer-sketch-title bfs-layer-sketch-desc">
+                <title id="bfs-layer-sketch-title">BFS 从起点逐层向外展开</title>
+                <desc id="bfs-layer-sketch-desc">起点为第零层；先检查第一层的两个节点，再展开第二层的四个节点。连线表示相邻节点之间的连接，不是小猫的行走路线。</desc>
+                <g class="bfs-sketch-links" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" stroke-opacity=".55">
+                  <path d="M175 17L120 54M175 17L230 54M120 54L80 91M120 54L150 91M230 54L210 91M230 54L280 91"/>
+                </g>
+                <g class="bfs-sketch-nodes" fill="currentColor" stroke="#fff9eb" stroke-width="3">
+                  <circle cx="175" cy="17" r="6" data-bfs-layer="0"/>
+                  <circle cx="120" cy="54" r="6" data-bfs-layer="1"/><circle cx="230" cy="54" r="6" data-bfs-layer="1"/>
+                  <circle cx="80" cy="91" r="6" data-bfs-layer="2"/><circle cx="150" cy="91" r="6" data-bfs-layer="2"/><circle cx="210" cy="91" r="6" data-bfs-layer="2"/><circle cx="280" cy="91" r="6" data-bfs-layer="2"/>
+                </g>
+                <g class="bfs-sketch-levels" font-size="14" dominant-baseline="middle">
+                  <text x="2" y="17">起点</text><text x="2" y="54">1 步</text><text x="2" y="91">2 步</text>
+                </g>
+              </svg>
+              <strong>从近到远，逐层展开</strong>
+              <p class="bfs-sketch-note">先检查完同一层，再展开下一层。</p>
+            </div>
+            <div class="route-goal"><img src="./assets/fish-maze-low-poly.png" alt="目标小鱼"></div>
+          </div>
+          <div class="memory-rules" aria-label="搜索方法判断口诀">
+            <p><b>只要找到一种办法</b><span>DFS/BFS都可以</span></p>
+            <p><b>每步代价相同，必须最少步数</b><span>选择 BFS</span></p>
+          </div>
+        </section>
+
+        <section class="strategy-check" aria-labelledby="strategy-check-title">
+          <header>
+            <div>
+              <p class="kicker">现在你来替 AI 做选择</p>
+              <h2 id="strategy-check-title">任务不同，方法也不同</h2>
+            </div>
+            <p class="task-progress"><strong id="summary-score">0</strong><span>/ 2 已答对</span></p>
+          </header>
+
+          <ol class="strategy-tasks">
+            <li class="strategy-task strategy-task--multiple" data-summary-task="warehouse" data-answer="dfs,bfs">
+              <span class="task-number">01</span>
+              <div class="task-copy">
+                <h3>仓库机器人找充电点</h3>
+                <p>只要找到任意一个可用充电点就行，不要求离机器人最近。</p>
+                <p class="task-feedback" aria-live="polite">选择一种方法，看看它是否满足任务要求。</p>
+                <span class="task-stamp" aria-hidden="true">已答对</span>
+              </div>
+              <div class="task-choices" role="group" aria-label="仓库机器人任务选择">
+                <button type="button" data-summary-choice="dfs">DFS</button>
+                <button type="button" data-summary-choice="bfs">BFS</button>
+              </div>
+            </li>
+            <li class="strategy-task" data-summary-task="delivery" data-answer="bfs">
+              <span class="task-number">02</span>
+              <div class="task-copy">
+                <h3>校园配送车规划路线</h3>
+                <p>每走一段路都算一步，要求找到总步数最少的路线。</p>
+                <p class="task-feedback" aria-live="polite">“最少”是这道任务的重要线索。</p>
+                <span class="task-stamp" aria-hidden="true">已答对</span>
+              </div>
+              <div class="task-choices" role="group" aria-label="校园配送任务选择">
+                <button type="button" data-summary-choice="dfs">DFS</button>
+                <button type="button" data-summary-choice="bfs">BFS</button>
+              </div>
+            </li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="summary-actions">
+        <button id="summary-restart" class="challenge-secondary" type="button">从头再学一次</button>
+        <a class="summary-home" href="./index.html">回到首页</a>
+      </div>
+    </section>
+
+    <section class="teaching-bar" aria-label="教学旁白">
+      <div class="teaching-index">
+        <span id="step-number">01</span>
+        <small id="phase-label">观察</small>
+      </div>
+      <div class="narration">
+        <p id="narration-label" class="narration-label">正在发生什么？</p>
+        <p id="narration-text" aria-live="polite">小鱼就在右下角，但通路还藏在迷雾中。让我们看看小猫会怎样探索。</p>
+      </div>
+      <div class="journey-status">
+        <div class="journey-line"><span id="journey-fill"></span></div>
+        <div class="journey-meta">
+          <p id="progress-label">进度</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/gsap.min.js"></script>
+  <script src="./maze.js?v=81"></script>
+</body>
+</html>
